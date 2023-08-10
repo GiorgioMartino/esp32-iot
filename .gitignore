@@ -191,7 +191,7 @@ cython_debug/
 *.exe
 *.out
 *.app
-*.vscode/
+cpp/bluetooth-arduino/.vscode/
 
 *.pio
 *.vscode/.browse.c_cpp.db*
