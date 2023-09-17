@@ -7,9 +7,6 @@
 // CoAP client response callback
 void callback_response(CoapPacket &packet, IPAddress ip, int port);
 
-// CoAP server endpoint url callback
-void callback_light(CoapPacket &packet, IPAddress ip, int port);
-
 // UDP and CoAP class
 WiFiUDP udp;
 Coap coap(udp);
@@ -24,21 +21,6 @@ void callback_response(CoapPacket &packet, IPAddress ip, int port)
   p[packet.payloadlen] = NULL;
 
   Serial.println(p);
-}
-
-void callback_light(CoapPacket &packet, IPAddress ip, int port)
-{
-  // This is a callback function that simulates the control lamp by receiving the command
-  Serial.print("Received from: ");
-  Serial.println(ip);
-  Serial.println(packet.messageid);
-
-  // Send response
-  char p[packet.payloadlen + 1];
-  memcpy(p, packet.payload, packet.payloadlen);
-  p[packet.payloadlen] = NULL;
-
-  coap.sendResponse(ip, port, packet.messageid, "1");
 }
 
 void setup()
@@ -56,11 +38,6 @@ void setup()
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
-
-  Serial.println("Setup Callback Light");
-  // In fact, the registration server handles the callback function
-  // Add the handler pointer and url to uri.add
-  coap.server(callback_light, "light");
 
   // client response callback.
   // this endpoint is single callback.

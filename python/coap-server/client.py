@@ -29,7 +29,7 @@ async def main():
 
     protocol = await Context.create_client_context()
 
-    request = Message(code=GET, uri='coap://192.168.1.12:5683/time')
+    request = Message(code=GET, uri='coap://3.124.142.205:5683/time')
 
     # payload = b"The quick brown fox jumps over the lazy dog.\n"
     # request = Message(code=PUT, payload=payload, uri="coap://192.168.1.12:5683/block")

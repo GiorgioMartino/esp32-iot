@@ -19,6 +19,11 @@ Python code including servers
 pip install git+https://github.com/pybluez/pybluez.git#egg=pybluez
 ```
 
+```shell
+pip install -r requirements.txt
+```
+
+
 ### Run
 
 - Upload `cpp/bluetooth-arduino/main.cpp` onto ESP32 board
@@ -32,4 +37,15 @@ This will set up the board bluetooth and start sending numbered JSON packages
 This script will attempt connection to the ESP32 bluetooth using `pybluez` library. It will receive 
 JSON messages and forward them (modifying the content).
 
-## CoAP Module
+## HTTP Module
+
+Run Python Server
+
+```shell
+uvicorn http-server.main-http:app --reload --host 0.0.0.0 --port 8000```
+```
+
+Open server with ngrok
+```shell
+ngrok http --scheme=http --scheme https 8000
+```
