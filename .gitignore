@@ -199,3 +199,4 @@ cpp/bluetooth-arduino/.vscode/
 *.vscode/c_cpp_properties.json
 *.vscode/launch.json
 *.vscode/ipch
+cpp/**/**/secrets.h
