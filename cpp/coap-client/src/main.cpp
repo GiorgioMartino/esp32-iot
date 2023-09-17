@@ -2,7 +2,10 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <coap-simple.h>
-#include "pw_secret.h"
+#include "secrets.h"
+
+char ssid[] = SECRET_SSID;
+char pass[] = SECRET_PASS;
 
 // CoAP client response callback
 void callback_response(CoapPacket &packet, IPAddress ip, int port);
@@ -10,6 +13,7 @@ void callback_response(CoapPacket &packet, IPAddress ip, int port);
 // UDP and CoAP class
 WiFiUDP udp;
 Coap coap(udp);
+IPAddress ip(172, 20, 10, 8);
 
 // CoAP client response callback
 void callback_response(CoapPacket &packet, IPAddress ip, int port)
@@ -27,7 +31,7 @@ void setup()
 {
   Serial.begin(115200);
 
-  WiFi.begin(SSID, PW);
+  WiFi.begin(ssid, pass);
   while (WiFi.status() != WL_CONNECTED)
   {
     delay(500);
@@ -46,14 +50,17 @@ void setup()
 
   // start coap server/client
   coap.start();
-  coap.get(IPAddress(192, 168, 1, 12), 5683, "time");
+  Serial.println("Sending request");
+  coap.get(ip, 5683, "time");
 }
 
 void loop()
 {
-  coap.get(IPAddress(192, 168, 1, 12), 5683, "time");
+  Serial.println("Sending request");
+  coap.get(ip, 5683, "time");
 
   delay(1000);
   coap.loop();
-  coap.get(IPAddress(192, 168, 1, 12), 5683, "time");
+  Serial.println("Sending request");
+  coap.get(ip, 5683, "time");
 }
