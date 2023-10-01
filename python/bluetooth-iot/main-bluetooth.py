@@ -1,5 +1,4 @@
 import bluetooth
-import json
 
 target_name = "ESP32-Giorgio"
 target_address = None
@@ -29,17 +28,9 @@ print("connected")
 
 buf_size = 128
 
-for i in range(1, 150):
-    print(f"Loop {i}")
+while True:
     data = socket.recv(buf_size).decode()
     print(f"Received {data}")
 
-    json_obj = json.loads(data)
-    json_obj["content"] = "Back from python"
-
-    json_str = json.dumps(json_obj)
-    print(f"Sending {json_str}")
-    socket.send(json_str)
-
-socket.close()
-print("End")
+    print(f"Sending msg")
+    socket.send("python")

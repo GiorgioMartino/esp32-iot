@@ -34,7 +34,7 @@ void loop()
   {
     HTTPClient http;
     // http.begin("http://www.zeppelinmaker.it/helloworld.txt");
-    http.begin("http://172.20.10.8:8000");
+    http.begin("http://192.168.1.12:8000");
     // http.addHeader("ngrok-skip-browser-warning", "69420");
 
     Serial.println("Sending GET Request");

@@ -1,27 +1,25 @@
 #include <Arduino.h>
-#include <ArduinoJson.h>
 #include <BluetoothSerial.h>
 #include <chrono>
+#include <SPI.h>
+#include <WiFi.h>
+#include <PubSubClient.h>
+#include "secrets.h"
 
 using namespace std::chrono;
 
-// JSON example
-// {
-//   "message_number" : 1,
-//   "start_timestamp" : 12345667,
-//   "content" : "Hello from ESP32"
-// }
+char ssid[] = SECRET_SSID;
+char password[] = SECRET_PASS;
+
+IPAddress ip(192, 168, 1, 12);
+
+WiFiClient espClient;
+PubSubClient client(ip, 1883, espClient);
 
 BluetoothSerial SerialBT;
 
-void setup()
-{
-  Serial.begin(115200);
-  SerialBT.begin("ESP32-Giorgio");
-  Serial.println("The device started, now you can pair it with bluetooth!");
-}
+int msgSent = 0;
 
-int msgNumber = 1;
 long ms;
 long receivedMs;
 
@@ -30,81 +28,94 @@ double totalRTT = 0;
 double avg = 0;
 int packetLoss = 0;
 
+double throughput = 0;
+long initalMs = millis();
+
 bool start = false;
+
+void setup()
+{
+  // Setup
+  Serial.begin(9600);
+  delay(3000);
+  SerialBT.begin("ESP32-Giorgio");
+  Serial.println("The device started, now you can pair it with bluetooth!");
+
+  // Setup MQTT
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(500);
+    Serial.print(".");
+  }
+  client.setServer(ip, 1883);
+  while (!client.connected())
+  {
+    if (client.connect("ESP32"))
+    {
+      Serial.println("Connected to broker MQTT");
+    }
+    else
+    {
+      Serial.print(".");
+      delay(1000);
+    }
+  }
+
+  client.loop();
+}
 
 void loop()
 {
   // Send data through Bluetooth socket
-  const int capacity = JSON_OBJECT_SIZE(8);
-  StaticJsonDocument<capacity> json;
-
   ms = millis();
-
-  json["message_number"] = msgNumber;
-  json["current_timestamp"] = ms;
-  json["content"] = "Hello from ESP32";
-
-  std::string normalJson;
-  serializeJson(json, normalJson);
-
-  uint8_t buf[normalJson.length()];
-  memcpy(buf, normalJson.c_str(), normalJson.length());
-  SerialBT.write(buf, normalJson.length());
-
-  Serial.println("Sent");
-  Serial.write(buf, normalJson.length());
-  Serial.println();
+  SerialBT.println("Hello From ESP32");
+  msgSent++;
 
   // Receive data through Bluetooth socket
-
   String pythonJson = SerialBT.readString();
   if (pythonJson != NULL)
   {
     start = true;
-    Serial.println("Received");
-    Serial.println(pythonJson);
+    // Serial.println("Received");
+    // Serial.println(pythonJson);
 
-    StaticJsonDocument<capacity> receivedJson;
-    deserializeJson(receivedJson, pythonJson);
-
-    if (receivedJson["message_number"] == msgNumber)
-    {
-      receivedMs = millis();
-
-      double rtt = (receivedMs - ms) / 2;
-
-      Serial.print("RTT: ");
-      Serial.println(rtt, 4);
-
-      count++;
-      totalRTT += rtt;
-    }
-    else
-    {
-      packetLoss++;
-    }
-
-    msgNumber++;
+    receivedMs = millis();
+    double rtt = (receivedMs - ms) / 2;
+    // Serial.println(rtt, 4);
+    count++;
+    totalRTT += rtt;
   }
   else
   {
     if (start)
     {
       packetLoss++;
-      msgNumber++;
     }
   }
 
-  if (msgNumber == 100)
+  if (msgSent == 10)
   {
     avg = totalRTT / count;
-    Serial.print("AVG RTT: ");
+    Serial.println("AVG RTT");
     Serial.println(avg, 4);
-    Serial.print("Packet Loss: ");
+    Serial.println("Packet Loss");
     Serial.println(packetLoss, 10);
-  }
+    double bytes_sent = sizeof("Hello From ESP32") * msgSent;
+    throughput = bytes_sent / (millis() - initalMs) * 1000;
+    Serial.println("Throughput");
+    Serial.println(throughput, 4);
 
-  Serial.println();
+    msgSent = 0;
+    totalRTT = 0;
+    count = 0;
+    initalMs = millis();
+    packetLoss = 0;
+
+    client.publish("topic/bluetooth/rtt", String(avg).c_str());
+    client.publish("topic/bluetooth/packetLoss", String(packetLoss).c_str());
+    client.publish("topic/bluetooth/throughput", String(throughput).c_str());
+  }
 
   // delay(1000);
 }
