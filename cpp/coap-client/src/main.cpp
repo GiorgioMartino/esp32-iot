@@ -13,7 +13,8 @@ void callback_response(CoapPacket &packet, IPAddress ip, int port);
 // UDP and CoAP class
 WiFiUDP udp;
 Coap coap(udp);
-IPAddress ip(172, 20, 10, 8);
+IPAddress ip(192, 168, 1, 12);
+// IPAddress ip(172, 20, 10, 8);
 
 // CoAP client response callback
 void callback_response(CoapPacket &packet, IPAddress ip, int port)
@@ -51,16 +52,15 @@ void setup()
   // start coap server/client
   coap.start();
   Serial.println("Sending request");
-  coap.get(ip, 5683, "time");
+  coap.get(ip, 5683, "hello");
+  coap.put(ip, 5683, "hello", "Hello From ESP32");
 }
 
 void loop()
 {
   Serial.println("Sending request");
-  coap.get(ip, 5683, "time");
-
+  coap.get(ip, 5683, "hello");
+  coap.put(ip, 5683, "hello", "Hello From ESP32");
   delay(1000);
   coap.loop();
-  Serial.println("Sending request");
-  coap.get(ip, 5683, "time");
 }

@@ -2,12 +2,14 @@
 #include <WiFi.h>
 #include <WiFiMulti.h>
 #include <HTTPClient.h>
+#include <ArduinoJson.h>
 #include "secrets.h"
 
 char ssid[] = SECRET_SSID;
 char pass[] = SECRET_PASS;
 
 WiFiMulti wifiMulti;
+HTTPClient http;
 
 void setup()
 {
@@ -15,6 +17,12 @@ void setup()
   delay(3000);
 
   wifiMulti.addAP(ssid, pass);
+
+  while (wifiMulti.run() != WL_CONNECTED)
+  {
+    delay(500);
+    Serial.print(".");
+  }
 
   Serial.println("Ready");
 
@@ -26,38 +34,67 @@ void setup()
   IPAddress ip = WiFi.localIP();
   Serial.print("IP Address: ");
   Serial.println(ip);
+
+  // http.begin("http://www.zeppelinmaker.it/helloworld.txt");
+  http.begin("http://192.168.1.12:8000");
 }
 
 void loop()
 {
-  if (wifiMulti.run() == WL_CONNECTED)
+  // if (wifiMulti.run() == WL_CONNECTED)
+  // {
+  // HTTPClient http;
+  // http.begin("http://192.168.1.12:8000");
+
+  Serial.println("Sending GET Request");
+
+  int httpCode = http.GET();
+  Serial.print("HTTP code:");
+  Serial.println(httpCode);
+
+  if (httpCode > 0)
   {
-    HTTPClient http;
-    // http.begin("http://www.zeppelinmaker.it/helloworld.txt");
-    http.begin("http://192.168.1.12:8000");
-    // http.addHeader("ngrok-skip-browser-warning", "69420");
-
-    Serial.println("Sending GET Request");
-
-    int httpCode = http.GET();
-    Serial.print("HTTP code:");
-    Serial.println(httpCode);
-
-    if (httpCode > 0)
+    if (httpCode == HTTP_CODE_OK)
     {
-      if (httpCode == HTTP_CODE_OK)
-      {
-        String page = http.getString();
-        Serial.println(page);
-      }
-      else {
-        Serial.println("HTTP GET: Failed");
-        Serial.println(http.errorToString(httpCode).c_str());
-      }
+      String page = http.getString();
+      Serial.println(page);
     }
-    http.end();
+    else
+    {
+      Serial.println("HTTP GET: Failed");
+      Serial.println(http.errorToString(httpCode).c_str());
+    }
   }
 
-  delay(5000);
+  Serial.println("Sending POST Request");
 
+  StaticJsonDocument<20> doc;
+  doc["data"] = "Hello from ESP32";
+  String payload;
+  Serial.println(payload);
+
+  serializeJson(doc, payload);
+
+  httpCode = http.POST(payload);
+  Serial.print("HTTP code:");
+  Serial.println(httpCode);
+
+  if (httpCode > 0)
+  {
+    if (httpCode == HTTP_CODE_OK)
+    {
+      String page = http.getString();
+      Serial.println(page);
+    }
+    else
+    {
+      Serial.println("HTTP POST: Failed");
+      Serial.println(http.errorToString(httpCode).c_str());
+    }
+  }
+
+  // http.end();
+  // }
+
+  delay(1000);
 }

@@ -1,13 +1,23 @@
-import uvicorn
 from fastapi import FastAPI
+from pydantic import BaseModel
 import socket
 
 app = FastAPI()
 
 
+class PostPayload(BaseModel):
+    data: str
+
+
 @app.get("/")
-async def root():
+async def get_root():
     return "Hello World"
+
+
+@app.post("/")
+async def post_root(payload: PostPayload):
+    print(f'Received POST with payload: {payload.data}')
+    return "Hello from Python Server"
 
 
 def get_local_ip():

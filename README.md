@@ -34,6 +34,7 @@ sudo npm install -g --unsafe-perm node-red
 
 File `flows.json` contains a backup of NodeRed Flow
 
+Head to [NodeRed UI](http://localhost:1880/ui) to see the Dashboard
 
 ## Bluetooth Module
 

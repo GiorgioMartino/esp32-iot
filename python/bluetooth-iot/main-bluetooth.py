@@ -3,12 +3,13 @@ import bluetooth
 target_name = "ESP32-Giorgio"
 target_address = None
 
-nearby_devices = bluetooth.discover_devices()
-
-for blt_addr in nearby_devices:
-    if target_name == bluetooth.lookup_name(blt_addr):
-        target_address = blt_addr
-        break
+while target_address is None:
+    print("Scanning...")
+    nearby_devices = bluetooth.discover_devices()
+    for blt_addr in nearby_devices:
+        if target_name == bluetooth.lookup_name(blt_addr):
+            target_address = blt_addr
+            break
 
 if target_address is None:
     print("could not find target bluetooth device nearby")
@@ -33,4 +34,4 @@ while True:
     print(f"Received {data}")
 
     print(f"Sending msg")
-    socket.send("python")
+    socket.send("Hello from Python Server")
