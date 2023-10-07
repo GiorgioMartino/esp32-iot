@@ -1,0 +1,18 @@
+\contentsline {section}{\numberline {1}Introduction}{2}{section.1}%
+\contentsline {section}{\numberline {2}Technologies analyzed}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Devices}{3}{subsection.2.1}%
+\contentsline {subsubsection}{\numberline {2.1.1}ESP32}{3}{subsubsection.2.1.1}%
+\contentsline {subsubsection}{\numberline {2.1.2}Ubuntu laptop}{4}{subsubsection.2.1.2}%
+\contentsline {subsection}{\numberline {2.2}Bluetooth}{4}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}CoAP}{4}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}HTTP}{4}{subsection.2.4}%
+\contentsline {section}{\numberline {3}Implementation}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Bluetooth client to client}{5}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}CoAP client to server}{6}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}HTTP client to server}{7}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}MQTT publisher}{8}{subsection.3.4}%
+\contentsline {section}{\numberline {4}Problems encountered}{9}{section.4}%
+\contentsline {section}{\numberline {5}Performance evaluation}{10}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Latency}{10}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Packet Loss}{10}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Throughput}{10}{subsection.5.3}%

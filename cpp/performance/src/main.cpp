@@ -6,6 +6,7 @@
 #include <PubSubClient.h>
 #include <WiFiUdp.h>
 #include <coap-simple.h>
+#include <HTTPClient.h>
 #include "secrets.h"
 
 using namespace std::chrono;
@@ -16,15 +17,18 @@ char password[] = SECRET_PASS;
 
 // Connections
 IPAddress ip(192, 168, 1, 12);
+const String httpHost = "http://192.168.1.12:8000";
 // IPAddress ip(172, 20, 10, 8);
+// const String httpHost = "http://172.20.10.8:8000";
 WiFiClient wifiClient;
 PubSubClient mqttClient(ip, 1883, wifiClient);
 BluetoothSerial SerialBT;
 WiFiUDP udp;
 Coap coap(udp);
+HTTPClient httpClient;
 
-const int STATS_TARGET = 10;
-const String MESSAGE_CONTENT = "Hello From ESP32";
+const int STATS_TARGET = 5;
+const char jsonPayload[] = "{\"data\":\"Hello from ESP32\"}";
 
 // Global variables
 int bltSentCount;
@@ -33,18 +37,17 @@ int httpSentCount;
 int bltReceivedCount;
 int coapReceivedCount;
 int httpReceivedCount;
-long bltTotalTime;
-long coapTotalTime;
-long httpTotalTime;
-long bltSentTime;
-long bltReceivedTime;
-long coapSentTime;
-long coapReceivedTime;
-long httpSentTime;
-long httpReceivedTime;
+double bltTotalTime;
+double coapTotalTime;
+double httpTotalTime;
+double bltSentTime;
+double bltReceivedTime;
+double coapSentTime;
+double coapReceivedTime;
+double httpSentTime;
+double httpReceivedTime;
 
 boolean coapSent = false;
-boolean httpSent = false;
 
 int packetLoss;
 double latency;
@@ -60,16 +63,19 @@ void setup()
   // Setup
   Serial.begin(9600);
   delay(3000);
+
+  // Setup Bluetooth
+  SerialBT.begin("ESP32-Giorgio");
+  Serial.println("The device started, now you can pair it with bluetooth!");
+
+  // Setup WiFi
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED)
   {
     delay(500);
     Serial.print(".");
   }
-
-  // Setup Bluetooth
-  SerialBT.begin("ESP32-Giorgio");
-  Serial.println("The device started, now you can pair it with bluetooth!");
+  Serial.println("Connected to WiFi");
 
   // Setup MQTT
   mqttClient.setServer(ip, 1883);
@@ -87,12 +93,17 @@ void setup()
   }
   mqttClient.loop();
 
-  // CoAP
+  // Setup CoAP
   coap.response(callback_response);
   coap.start();
 
+  // Setup HTTP
+  httpClient.begin(httpHost);
+
   // Initialize stats
   resetStats(0);
+  delay(10000);
+  Serial.println("SETUP Completed");
 }
 
 void loop()
@@ -100,14 +111,14 @@ void loop()
   // Bluetooth
   if (bltSentCount < STATS_TARGET)
   {
-    Serial.println("Sending bluetooth");
+    // Serial.println("Sending bluetooth");
     bltSentTime = millis();
-    SerialBT.println("Hello From ESP32");
+    SerialBT.println(jsonPayload);
     bltSentCount++;
     String bltResponse = SerialBT.readString();
     if (bltResponse != NULL)
     {
-      Serial.println("Received bluetooth");
+      // Serial.println("Received bluetooth");
       bltReceivedTime = millis();
       bltTotalTime += (bltReceivedTime - bltSentTime);
       bltReceivedCount++;
@@ -120,12 +131,13 @@ void loop()
       // Publish Bluetooth results on Node-RED via MQTT
       packetLoss = STATS_TARGET - bltReceivedCount;
       latency = bltTotalTime / bltReceivedCount;
-      bytes = MESSAGE_CONTENT.length() * sizeof(wchar_t) * STATS_TARGET;
+      bytes = sizeof(jsonPayload) * STATS_TARGET;
       throughput = bytes / (bltTotalTime / 1000);
 
       mqttClient.publish("bluetooth/latency", String(latency).c_str());
       mqttClient.publish("bluetooth/packetLoss", String(packetLoss).c_str());
       mqttClient.publish("bluetooth/throughput", String(throughput).c_str());
+      Serial.println("Published Bluetooth results");
     }
     catch (...)
     {
@@ -140,8 +152,8 @@ void loop()
     if (!coapSent)
     {
       coapSentTime = millis();
-      Serial.println("Sending CoAP");
-      coap.put(ip, 5683, "hello", "Hello From ESP32");
+      // Serial.println("Sending CoAP");
+      coap.put(ip, 5683, "hello", jsonPayload);
       coapSent = true;
       coapSentCount++;
     }
@@ -154,12 +166,13 @@ void loop()
       // Publish CoAP results on Node-RED via MQTT
       packetLoss = STATS_TARGET - coapReceivedCount;
       latency = coapTotalTime / coapReceivedCount;
-      bytes = MESSAGE_CONTENT.length() * sizeof(wchar_t) * STATS_TARGET;
+      bytes = sizeof(jsonPayload) * STATS_TARGET;
       throughput = bytes / (coapTotalTime / 1000);
 
       mqttClient.publish("coap/latency", String(latency).c_str());
       mqttClient.publish("coap/packetLoss", String(packetLoss).c_str());
       mqttClient.publish("coap/throughput", String(throughput).c_str());
+      Serial.println("Published CoAP results");
     }
     catch (...)
     {
@@ -167,11 +180,48 @@ void loop()
     }
     resetStats(2);
   }
+
+  // HTTP
+  if (httpSentCount < STATS_TARGET)
+  {
+    httpSentTime = millis();
+    // Serial.println("Sending HTTP");
+    int httpCode = httpClient.POST(jsonPayload);
+    httpSentCount++;
+    if (httpCode == HTTP_CODE_OK)
+    {
+      // Serial.println("Received HTTP Response");
+      httpReceivedTime = millis();
+      httpTotalTime += (httpReceivedTime - httpSentTime);
+      httpReceivedCount++;
+    }
+  }
+  else
+  {
+    try
+    {
+      // Publish HTTP results on Node-RED via MQTT
+      packetLoss = STATS_TARGET - httpReceivedCount;
+      latency = httpTotalTime / httpReceivedCount;
+      bytes = sizeof(jsonPayload) * STATS_TARGET;
+      throughput = bytes / (httpTotalTime / 1000);
+
+      mqttClient.publish("http/latency", String(latency).c_str());
+      mqttClient.publish("http/packetLoss", String(packetLoss).c_str());
+      mqttClient.publish("http/throughput", String(throughput).c_str());
+      Serial.println("Published HTTP results");
+    }
+    catch (...)
+    {
+      Serial.println("ERROR");
+    }
+    resetStats(3);
+  }
 }
 
 void callback_response(CoapPacket &packet, IPAddress ip, int port)
 {
-  Serial.println("[Coap Response got]");
+  // Serial.println("Received CoAP Response");
 
   char p[packet.payloadlen + 1];
   memcpy(p, packet.payload, packet.payloadlen);
@@ -181,10 +231,6 @@ void callback_response(CoapPacket &packet, IPAddress ip, int port)
   coapReceivedTime = millis();
   coapTotalTime += (coapReceivedTime - coapSentTime);
   coapReceivedCount++;
-  Serial.print("Total time: ");
-  Serial.println(coapTotalTime);
-  Serial.print("Received count: ");
-  Serial.println(coapReceivedCount);
 
   coapSent = false;
 }

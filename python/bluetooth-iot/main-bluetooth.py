@@ -1,4 +1,5 @@
 import bluetooth
+import datetime
 
 target_name = "ESP32-Giorgio"
 target_address = None
@@ -31,7 +32,6 @@ buf_size = 128
 
 while True:
     data = socket.recv(buf_size).decode()
-    print(f"Received {data}")
-
-    print(f"Sending msg")
+    time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"{time} - Received from Bluetooth: {data}")
     socket.send("Hello from Python Server")

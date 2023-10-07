@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import socket
+import datetime
 
 app = FastAPI()
 
@@ -16,7 +17,8 @@ async def get_root():
 
 @app.post("/")
 async def post_root(payload: PostPayload):
-    print(f'Received POST with payload: {payload.data}')
+    time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f'{time} - Received POST with payload: {payload}')
     return "Hello from Python Server"
 
 

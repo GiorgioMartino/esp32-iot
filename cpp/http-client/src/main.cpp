@@ -10,15 +10,22 @@ char pass[] = SECRET_PASS;
 
 WiFiMulti wifiMulti;
 HTTPClient http;
+WiFiClient wifiClient;
 
 void setup()
 {
   Serial.begin(9600);
   delay(3000);
 
-  wifiMulti.addAP(ssid, pass);
+  // wifiMulti.addAP(ssid, pass);
+  // while (wifiMulti.run() != WL_CONNECTED)
+  // {
+  //   delay(500);
+  //   Serial.print(".");
+  // }
 
-  while (wifiMulti.run() != WL_CONNECTED)
+  WiFi.begin(ssid, pass);
+  while (WiFi.status() != WL_CONNECTED)
   {
     delay(500);
     Serial.print(".");
@@ -68,14 +75,18 @@ void loop()
 
   Serial.println("Sending POST Request");
 
-  StaticJsonDocument<20> doc;
+  const int capacity = JSON_OBJECT_SIZE(8);
+  StaticJsonDocument<capacity> doc;
   doc["data"] = "Hello from ESP32";
   String payload;
-  Serial.println(payload);
 
   serializeJson(doc, payload);
+  Serial.println(payload);
 
-  httpCode = http.POST(payload);
+  // char json[] = "{\"data\":\"Hello from ESP32\"}";
+  // Serial.println(json);
+
+  int httpCode = http.POST(payload);
   Serial.print("HTTP code:");
   Serial.println(httpCode);
 

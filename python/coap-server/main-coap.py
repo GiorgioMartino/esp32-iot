@@ -1,6 +1,5 @@
 import datetime
 import logging
-
 import asyncio
 import aiocoap.resource as resource
 import aiocoap
@@ -20,13 +19,13 @@ class HelloResource(resource.ObservableResource):
         self.handle = asyncio.get_event_loop().call_later(5, self.notify)
 
     async def render_get(self, request):
-        payload = datetime.datetime.now(). \
-            strftime("%Y-%m-%d %H:%M").encode('ascii')
+        payload = datetime.datetime.now().strftime("%Y-%m-%d %H:%M").encode('ascii')
         print("Received GET Request")
         return aiocoap.Message(payload=payload)
 
     async def render_put(self, request):
-        print('Received PUT payload: %s' % request.payload)
+        time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f'{time} - Received PUT payload: {request.payload}')
         response_payload = b'Hello from Python Server'
         return aiocoap.Message(code=aiocoap.CHANGED, payload=response_payload)
 
