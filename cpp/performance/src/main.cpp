@@ -7,6 +7,7 @@
 #include <WiFiUdp.h>
 #include <coap-simple.h>
 #include <HTTPClient.h>
+#include <BLEDevice.h>
 #include "secrets.h"
 
 using namespace std::chrono;
@@ -63,6 +64,11 @@ void setup()
   // Setup
   Serial.begin(9600);
   delay(3000);
+  Serial.print("TX power:");
+  Serial.println(esp_ble_tx_power_get(ESP_BLE_PWR_TYPE_DEFAULT));
+  esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_DEFAULT, ESP_PWR_LVL_P9);
+  Serial.print("TX power updated:");
+  Serial.println(esp_ble_tx_power_get(ESP_BLE_PWR_TYPE_DEFAULT));
 
   // Setup Bluetooth
   SerialBT.begin("ESP32-Giorgio");
@@ -137,7 +143,7 @@ void loop()
       mqttClient.publish("bluetooth/latency", String(latency).c_str());
       mqttClient.publish("bluetooth/packetLoss", String(packetLoss).c_str());
       mqttClient.publish("bluetooth/throughput", String(throughput).c_str());
-      Serial.println("Published Bluetooth results");
+      // Serial.println("Published Bluetooth results");
     }
     catch (...)
     {
@@ -152,10 +158,27 @@ void loop()
     if (!coapSent)
     {
       coapSentTime = millis();
-      // Serial.println("Sending CoAP");
+      Serial.print(" -----> Sending CoAP at: ");
+      Serial.println(coapSentTime);
       coap.put(ip, 5683, "hello", jsonPayload);
       coapSent = true;
       coapSentCount++;
+    }
+    else
+    {
+      double time = millis();
+      if ((time - coapSentTime) > 3000)
+      {
+        Serial.println("Packet lost");
+        Serial.print(time);
+        Serial.print(" - ");
+        Serial.println(coapSentTime);
+        coapSent = false;
+      }
+      else
+      {
+        Serial.println("Maybe not lost");
+      }
     }
     coap.loop();
   }
@@ -172,7 +195,7 @@ void loop()
       mqttClient.publish("coap/latency", String(latency).c_str());
       mqttClient.publish("coap/packetLoss", String(packetLoss).c_str());
       mqttClient.publish("coap/throughput", String(throughput).c_str());
-      Serial.println("Published CoAP results");
+      // Serial.println("Published CoAP results");
     }
     catch (...)
     {
@@ -209,7 +232,7 @@ void loop()
       mqttClient.publish("http/latency", String(latency).c_str());
       mqttClient.publish("http/packetLoss", String(packetLoss).c_str());
       mqttClient.publish("http/throughput", String(throughput).c_str());
-      Serial.println("Published HTTP results");
+      // Serial.println("Published HTTP results");
     }
     catch (...)
     {
@@ -221,8 +244,6 @@ void loop()
 
 void callback_response(CoapPacket &packet, IPAddress ip, int port)
 {
-  // Serial.println("Received CoAP Response");
-
   char p[packet.payloadlen + 1];
   memcpy(p, packet.payload, packet.payloadlen);
   p[packet.payloadlen] = NULL;
@@ -231,6 +252,9 @@ void callback_response(CoapPacket &packet, IPAddress ip, int port)
   coapReceivedTime = millis();
   coapTotalTime += (coapReceivedTime - coapSentTime);
   coapReceivedCount++;
+
+  Serial.print(" <----- Received CoAP Response at: ");
+  Serial.println(coapReceivedTime);
 
   coapSent = false;
 }

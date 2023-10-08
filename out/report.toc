@@ -2,7 +2,7 @@
 \contentsline {section}{\numberline {2}Technologies analyzed}{3}{section.2}%
 \contentsline {subsection}{\numberline {2.1}Devices}{3}{subsection.2.1}%
 \contentsline {subsubsection}{\numberline {2.1.1}ESP32}{3}{subsubsection.2.1.1}%
-\contentsline {subsubsection}{\numberline {2.1.2}Ubuntu laptop}{4}{subsubsection.2.1.2}%
+\contentsline {subsubsection}{\numberline {2.1.2}Ubuntu laptop}{3}{subsubsection.2.1.2}%
 \contentsline {subsection}{\numberline {2.2}Bluetooth}{4}{subsection.2.2}%
 \contentsline {subsection}{\numberline {2.3}CoAP}{4}{subsection.2.3}%
 \contentsline {subsection}{\numberline {2.4}HTTP}{4}{subsection.2.4}%
@@ -16,3 +16,8 @@
 \contentsline {subsection}{\numberline {5.1}Latency}{10}{subsection.5.1}%
 \contentsline {subsection}{\numberline {5.2}Packet Loss}{10}{subsection.5.2}%
 \contentsline {subsection}{\numberline {5.3}Throughput}{10}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Tests and Node-RED Dashboard}{11}{subsection.5.4}%
+\contentsline {subsubsection}{\numberline {5.4.1}ESP32 and Ubuntu laptop near each other}{11}{subsubsection.5.4.1}%
+\contentsline {subsubsection}{\numberline {5.4.2}ESP32 and Ubuntu laptop near each other, with obstacles}{11}{subsubsection.5.4.2}%
+\contentsline {subsubsection}{\numberline {5.4.3}ESP32 and Ubuntu laptop far from each other}{11}{subsubsection.5.4.3}%
+\contentsline {section}{\numberline {6}Conclusions}{13}{section.6}%

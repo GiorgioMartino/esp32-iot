@@ -112,9 +112,9 @@ void loop()
     initalMs = millis();
     packetLoss = 0;
 
-    client.publish("topic/bluetooth/rtt", String(avg).c_str());
-    client.publish("topic/bluetooth/packetLoss", String(packetLoss).c_str());
-    client.publish("topic/bluetooth/throughput", String(throughput).c_str());
+    client.publish("bluetooth/rtt", String(avg).c_str());
+    client.publish("bluetooth/packetLoss", String(packetLoss).c_str());
+    client.publish("bluetooth/throughput", String(throughput).c_str());
   }
 
   // delay(1000);

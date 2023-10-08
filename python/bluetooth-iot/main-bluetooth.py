@@ -1,6 +1,7 @@
 import bluetooth
 import datetime
 
+buf_size = 128
 target_name = "ESP32-Giorgio"
 target_address = None
 
@@ -27,8 +28,6 @@ print("connecting to \"%s\" on %s, port %s" % (name, host, port))
 socket = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
 socket.connect((host, port))
 print("connected")
-
-buf_size = 128
 
 while True:
     data = socket.recv(buf_size).decode()

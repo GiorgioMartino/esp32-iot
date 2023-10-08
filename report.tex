@@ -68,9 +68,9 @@
 
     \end{abstract}
 
-    \tableofcontents
+%    \tableofcontents
 
-    \lstlistoflistings
+%    \lstlistoflistings
 
 
     \section{Introduction}\label{sec:introduction}
@@ -376,6 +376,18 @@
     board_build.partitions = huge_app.csv
     \end{verbatim}
 
+    \\~\\
+    One last issue I have is the pretty low range of the bluetooth chip.
+    Adding obstacles, or trying to get far from the Ubuntu laptop immediately results in a great loss
+    of packages.
+    At first, at only around 1 meter of distance it started having connectivity troubles.
+    Then after some research, I set the following parameter, which increased only partially the performance
+    (now it can reach around 2/3 meters):
+
+    \begin{verbatim}
+esp_ble_tx_power_set(ESP_BLE_PWR_TYPE_DEFAULT, ESP_PWR_LVL_P9);
+    \end{verbatim}
+
 
     \section{Performance evaluation}\label{sec:performance-evaluation}
 
@@ -423,9 +435,70 @@
 
     \begin{lstlisting}[label={lst:json1}, language=JSON, caption=JSON message]
 
-    {
-        "data": "Hello from ESP32"
-    }
+    { "data": "Hello from ESP32" }
     \end{lstlisting}
+
+    \subsection{Tests and Node-RED Dashboard}\label{subsec:tests-and-node-red-dashboard}
+
+    Three main tests were carried on:
+    \begin{enumerate}
+        \item ESP32 and Ubuntu laptop near each other
+        \item ESP32 and Ubuntu laptop near each other, with obstacles
+        \item ESP32 and Ubuntu laptop far from each other
+    \end{enumerate}
+
+    \subsubsection{ESP32 and Ubuntu laptop near each other}
+
+    In Figure~\ref{fig:near-cut} we can see that no packets are lost, for any of the protocols.
+    While HTTP clearly stands out with lower latency and higher throughput, it's interesting to see that
+    Bluetooth is actually performing a bit better than CoAP, mostly regarding latency.
+    \begin{figure}[h!]
+        \centering
+        \includegraphics[width=1\textwidth]{near-cut}
+        \caption{Single and aggregated statistics for ESP32 and Ubuntu laptop near each other}
+        \label{fig:near-cut}
+    \end{figure}
+
+    \subsubsection{ESP32 and Ubuntu laptop near each other, with obstacles}
+    In Figure~\ref{fig:obstacle-cut}, one can observe that as soon as we separate the two devices with an obstacle,
+    Bluetooth starts poorly performing.
+    Packet loss is quite high, almost never reaching zero out of five.
+    Differently, CoAP and HTTP have very similar performances as without any obstale.
+    \begin{figure}[h!]
+        \centering
+        \includegraphics[width=1\textwidth]{obstacle-cut}
+        \caption{Single and aggregated statistics for ESP32 and Ubuntu laptop near each other, with obstacles}
+        \label{fig:obstacle-cut}
+    \end{figure}
+
+    \subsubsection{ESP32 and Ubuntu laptop far from each other}
+    In Figure~\ref{fig:far-cut} it can be noted that with an increasing distance, we see a growth in latency,
+    mainly for bluetooth, but also for CoAP.
+    Anyway, Bluetooth seems a bit more stable than with an obstacle, having slightly lower packet loss.
+    HTTP is again the best performer, even though there were a few packets lost in the middle.
+    \begin{figure}[h!]
+        \centering
+        \includegraphics[width=1\textwidth]{far-cut}
+        \caption{Single and aggregated statistics for ESP32 and Ubuntu laptop far from each other}
+        \label{fig:far-cut}
+    \end{figure}
+
+    \pagebreak
+
+
+    \section{Conclusions}\label{sec:conclusions}
+
+    In conclusion, I'd say that the results obtained are quite self-explanatory.
+    In regard of the technologies analyzed, Wi-Fi seems to provide better performances (HTTP), and has
+    proven itself to be generally more resilient (both to distance and obstacles).
+    Bluetooth and CoAP, being more lightweight protocols, are still to be considered in applications
+    where throughput or latency are not vital.
+    The ESP32 can easily track if the message has been received, and it could try to send it again in
+    case it was lost.
+    For what concerns the overall ease of implementation, meaning required external tools, setup of the whole
+    \("\)pipeline\("\) of C++ onto the ESP32 and python onto the Ubuntu laptop, again the solution I would choose
+    is HTTP.
+
+    But, if we were only taking into account the ESP32 implementation, than Bluetooth would be my choice.
 
 \end{document}
